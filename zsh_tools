@@ -1,0 +1,66 @@
+# Workflow functions and aliases
+alias gsl='git stash list'
+unalias gss
+gss () {
+	git stash show stash@{$1}
+}
+gssp () {
+	git stash show -p stash@{$1}
+}
+gsa () {
+    git stash apply stash@{$1}
+}
+alias gitstat="git diff --stat"
+alias gdrb="git push origin --delete"
+alias gprune="git remote prune origin"
+alias stage-graph="git log --graph --decorate --oneline master~1..HEAD"
+alias resource='source ~/.zshrc'
+
+# Call this with a path /dev/input/event#
+device_info () {
+    udevadm info -a -p $(udevadm info -q path -n $1)
+}
+
+enumerate_inputs_names () {
+    for evdev in /dev/input/event*; do
+        device_info $evdev | grep ATTRS{name} | sed -rn 's|^(.*)==(.*)|'"$evdev"': \2|p'
+    done
+}
+
+
+alias vidinfo='v4l2-ctl --all -d'
+alias sup='supervisorctl'
+
+clock_restart () {
+    dconf reset -f /com/canonical/indicator/datetime/ 
+    pkill -f datetime
+}
+
+logparsef () {
+    cat $1 | jq -C -f $2 | less -R
+}
+
+logparse () {
+    cat $1 | jq -C $2 | less -R
+}
+
+topname () {
+    top -c -p $(pgrep -d',' -f $1)
+}
+
+ssh_forget() {
+    sed -i $1d ~/.ssh/known_hosts
+}
+
+modparams () {
+    cat /proc/modules | cut -f 1 -d " " | while read module; do
+        echo "Module: $module";
+        if [ -d "/sys/module/$module/parameters" ]; then
+            ls /sys/module/$module/parameters/ | while read parameter; do 
+                echo -n "Parameter: $parameter --> "; 
+                cat /sys/module/$module/parameters/$parameter; 
+            done; 
+        fi; 
+        echo; 
+    done
+}
